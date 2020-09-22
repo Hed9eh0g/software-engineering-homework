@@ -1,3 +1,4 @@
+#python 3.7
 import jieba
 import gensim
 import re
@@ -21,19 +22,6 @@ def filter(str):
     return result
 
 
-'''
-def calc_similarity(text1, text2):
-    text1 = [text1]
-    
-    dictionary = gensim.corpora.Dictionary(text1)
-    num_features = len(dictionary.token2id)
-    corpus = [dictionary.doc2bow(text) for text in text1]
-    new_vec = dictionary.doc2bow(text2)
-    similarity = gensim.similarities.Similarity('-Similarity-index', corpus, num_features)
-    return similarity[new_vec]
-'''
-
-
 def calc_similarity(text1, text2):
     texts = [text1, text2]
     dictionary = gensim.corpora.Dictionary(texts)
@@ -47,9 +35,14 @@ def calc_similarity(text1, text2):
 if __name__ == '__main__':
     path1 = "./test/orig.txt"
     path2 = "./test/orig_0.8_dis_15.txt"
+    save_path="./save.txt"
     str1 = get_file_contents(path1)
     str2 = get_file_contents(path2)
     text1 = filter(str1)
     text2 = filter(str2)
     similarity = calc_similarity(text1, text2)
     print("文章相似度： %.4f" % similarity)
+    #将相似度结果写入指定文件
+    f = open(save_path, 'w', encoding="utf-8")
+    f.write("文章相似度： %.4f"%similarity)
+    f.close()
