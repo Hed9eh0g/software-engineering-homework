@@ -374,10 +374,10 @@ if __name__ == '__main__':
 def main_test():
     path1 = input("输入论文原文的文件的绝对路径：")
     path2 = input("输入抄袭版论文的文件的绝对路径：")
-    if os.path.exists(path1) :
+    if not os.path.exists(path1) :
         print("论文原文文件不存在！")
         exit()
-    if os.path.exists(path2):
+    if not os.path.exists(path2):
         print("抄袭版论文文件不存在！")
         exit()
     ······
