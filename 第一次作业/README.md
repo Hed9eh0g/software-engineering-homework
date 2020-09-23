@@ -1,9 +1,13 @@
 
 # 前言
 
-作业要求：https://edu.cnblogs.com/campus/gdgy/informationsecurity1812/homework/11155
+|   软件工程   |  https://edu.cnblogs.com/campus/gdgy/informationsecurity1812    | 
+| ---- | ---- | ---- |
+|   作业要求   |   https://edu.cnblogs.com/campus/gdgy/informationsecurity1812/homework/11155   | 
+| 作业目标 | 代码实现、性能分析、记录PSP表格 |
 
-本文涉及代码已上传[个人GitHub]()
+
+本文涉及代码已上传[个人GitHub](https://github.com/Hed9eh0g/software-engineering-homework/blob/master/%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%BD%9C%E4%B8%9A)
 
 > 题目：论文查重
 >
@@ -160,7 +164,7 @@ import jieba
 import gensim
 import re
 
-
+#获取指定路径的文件内容
 def get_file_contents(path):
     str = ''
     f = open(path, 'r', encoding='UTF-8')
@@ -171,7 +175,7 @@ def get_file_contents(path):
     f.close()
     return str
 
-
+#将读取到的文件内容先进行jieba分词，然后再把标点符号、转义符号等特殊符号过滤掉
 def filter(str):
     str = jieba.lcut(str)
     result = []
@@ -182,7 +186,7 @@ def filter(str):
             pass
     return result
 
-
+#传入过滤之后的数据，通过调用gensim.similarities.Similarity计算余弦相似度
 def calc_similarity(text1,text2):
     texts=[text1,text2]
     dictionary = gensim.corpora.Dictionary(texts)
@@ -193,9 +197,9 @@ def calc_similarity(text1,text2):
     return cosine_sim
 
 if __name__ == '__main__':
-    path1 = "./test/orig_0.8_dis_10.txt"  #数据1路径
-    path2 = "./test/orig_0.8_dis_15.txt"   #数据2路径
-    save_path="./save.txt"
+    path1 = "E:\pythonProject1\test\orig_0.8_dis_10.txt"  #论文原文的文件的绝对路径（作业要求）
+    path2 = "E:\pythonProject1\test\orig_0.8_dis_15.txt"  #抄袭版论文的文件的绝对路径
+    save_path = "E:\pythonProject1\save.txt"   #输出结果绝对路径
     str1 = get_file_contents(path1)
     str2 = get_file_contents(path2)
     text1 = filter(str1)
@@ -222,8 +226,8 @@ if __name__ == '__main__':
 更改路径，
 
 ```python
-path1 = "./test/orig.txt"   #数据1路径
-path2 = "./test/orig_0.8_dis_15.txt"   #数据2路径
+path1 = "E:\pythonProject1\test\orig.txt"   ##论文原文的文件的绝对路径
+path2 = "E:\pythonProject1\test\orig_0.8_dis_15.txt"   #抄袭版论文的文件的绝对路径
 ```
 
 可以看出两篇文章相似度较小：
@@ -250,7 +254,7 @@ path2 = "./test/orig_0.8_dis_15.txt"   #数据2路径
 
 关注到`filter`函数：由于`cut`和`lcut`暂时找不到可提到的其他方法（jieba库已经算很强大了），暂时没办法进行改进，因此考虑对正则表达式匹配改进。
 
-**这里是先用`lcut`处理后再进行匹配过滤，可以先匹配过滤之后再用`lcut`来处理**
+**这里是先用`lcut`处理后再进行匹配过滤，这样做显得过于臃肿，可以考虑先匹配过滤之后再用`lcut`来处理**
 
 改进代码：
 
@@ -274,6 +278,116 @@ def filter(string):
 
 ![](https://img2020.cnblogs.com/blog/2147920/202009/2147920-20200922212751815-1196767001.png)
 
+# 单元测试
+
+这里需要用到python的unittest单元测试框架，详见[官网介绍](https://docs.python.org/zh-cn/3/library/unittest.html)
+
+
+
+为了方便进行单元测试，源码的`main()`应该修改一下：
+
+```python
+import jieba
+import gensim
+import re
+
+#获取指定路径的文件内容
+def get_file_contents(path):
+    string = ''
+    f = open(path, 'r', encoding='UTF-8')
+    line = f.readline()
+    while line:
+        string = string + line
+        line = f.readline()
+    f.close()
+    return string
+
+#将读取到的文件内容先把标点符号、转义符号等特殊符号过滤掉，然后再进行结巴分词
+def filter(string):
+    pattern = re.compile(u"[^a-zA-Z0-9\u4e00-\u9fa5]")
+    string = pattern.sub("", string)
+    result = jieba.lcut(string)
+    return result
+
+#传入过滤之后的数据，通过调用gensim.similarities.Similarity计算余弦相似度
+def calc_similarity(text1, text2):
+    texts = [text1, text2]
+    dictionary = gensim.corpora.Dictionary(texts)
+    corpus = [dictionary.doc2bow(text) for text in texts]
+    similarity = gensim.similarities.Similarity('-Similarity-index', corpus, num_features=len(dictionary))
+    test_corpus_1 = dictionary.doc2bow(text1)
+    cosine_sim = similarity[test_corpus_1][1]
+    return cosine_sim
+
+
+def main_test():
+    path1 = input("输入论文原文的文件的绝对路径：")
+    path2 = input("输入抄袭版论文的文件的绝对路径：")
+    str1 = get_file_contents(path1)
+    str2 = get_file_contents(path2)
+    text1 = filter(str1)
+    text2 = filter(str2)
+    similarity = calc_similarity(text1, text2)   #生成的similarity变量类型为<class 'numpy.float32'>
+    result=round(similarity.item(),2)  #借助similarity.item()转化为<class 'float'>，然后再取小数点后两位
+    return result
+
+
+if __name__ == '__main__':
+    main_test()
+```
+
+为了使预期值更好确定，这里考虑只取返回的相似度值的前两位，借助round(float,2)即可处理，由于生成的similarity类型为<class 'numpy.float32'>，因此应当先转化为<class 'float'>，查找[对应解决方法](https://stackoverflow.com/questions/9452775/converting-numpy-dtypes-to-native-python-types)：通过`xxx.item()`即可转化。
+
+再新建单元测试文件unit_test.py：
+
+```python
+import unittest
+from main import main_test
+
+
+class MyTestCase(unittest.TestCase):
+    def test_something(self):
+        self.assertEqual(main_test(),0.99)   #首先假设预测的是前面第一组运行的测试数据
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+```
+
+可以发现预测值为0.99正确：
+
+![](https://img2020.cnblogs.com/blog/2147920/202009/2147920-20200923215021710-274165704.png)
+
+![](https://img2020.cnblogs.com/blog/2147920/202009/2147920-20200923215100303-922870715.png)
+
+相似度仍然预测为0.99，但路径更改为之前测试的第二组数据：
+
+![](https://img2020.cnblogs.com/blog/2147920/202009/2147920-20200923215302158-1202301996.png)
+
+可以发现预测失败。
+
+# 异常处理说明
+
+在读取指定文件路径时，如果文件路径不存在，程序将会出现异常，因此可以在读取指定文件内容之前先判断文件是否存在，若不存在则做出响应并且结束程序。
+
+这里引入`os.path.exists()`方法用于检验文件是否存在：
+
+```python
+
+def main_test():
+    path1 = input("输入论文原文的文件的绝对路径：")
+    path2 = input("输入抄袭版论文的文件的绝对路径：")
+    if os.path.exists(path1) :
+        print("论文原文文件不存在！")
+        exit()
+    if os.path.exists(path2):
+        print("抄袭版论文文件不存在！")
+        exit()
+    ······
+```
+
+
 
 # PSP表格记录
 
@@ -295,7 +409,7 @@ def filter(string):
 | · Test Repor                            | · 测试报告                              | 20                     | 10                     |
 | · Size Measurement                      | · 计算工作量                            | 5                      | 5                      |
 | · Postmortem & Process Improvement Plan | · 事后总结, 并提出过程改进计划          | 5                      | 5                      |
-
+| Total                                   | 总计                                  |  1150                  | 915                    |
 
 
 # 参考文章
@@ -303,3 +417,5 @@ def filter(string):
 https://titanwolf.org/Network/Articles/Article?AID=26627f5e-1ce9-40cb-a091-b771ae91d69d
 
 http://www.ruanyifeng.com/blog/2013/03/cosine_similarity.html
+
+https://blog.csdn.net/qq_40938678/article/details/105354002
