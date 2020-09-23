@@ -1,10 +1,6 @@
 
 # 前言
 
-|   软件工程   |  https://edu.cnblogs.com/campus/gdgy/informationsecurity1812    | 
-| ---- | ---- | ---- |
-|   作业要求   |   https://edu.cnblogs.com/campus/gdgy/informationsecurity1812/homework/11155   | 
-| 作业目标 | 代码实现、性能分析、记录PSP表格 |
 
 
 本文涉及代码已上传[个人GitHub](https://github.com/Hed9eh0g/software-engineering-homework/blob/master/%E7%AC%AC%E4%B8%80%E6%AC%A1%E4%BD%9C%E4%B8%9A)
